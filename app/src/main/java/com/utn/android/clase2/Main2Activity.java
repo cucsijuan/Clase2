@@ -143,4 +143,6 @@ public class Main2Activity extends AppCompatActivity {
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
     }
+
+
 }

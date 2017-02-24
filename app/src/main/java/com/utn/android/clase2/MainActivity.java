@@ -2,6 +2,8 @@ package com.utn.android.clase2;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -25,10 +27,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.utn.android.clase2.R.id.nombre;
+
 public class MainActivity extends AppCompatActivity {
 
 
     List<Persona> personas = new ArrayList<>();
+
+    DbHelper dbHelper;
+    SQLiteDatabase dbRead;
+    SQLiteDatabase dbWrite;
 
     private ListView lista;
 
@@ -36,10 +44,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        personas.add(new Persona("Juan Manuel", "Couso", "lezica 1234", null));
 
-        lista = (ListView)findViewById(R.id.lista);
-        lista.setAdapter( miAdapter);
+        dbHelper = new DbHelper(this);
+
+        dbRead = dbHelper.getReadableDatabase();
+        dbWrite = dbHelper.getWritableDatabase();
+
+
+        //personas.add(new Persona("Juan Manuel", "Couso", "lezica 1234", null));
+        //addPersona(personas.get(0));
+
+        loadDb();
+
+        lista = (ListView) findViewById(R.id.lista);
+        lista.setAdapter(miAdapter);
         findViewById(R.id.agregar).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -55,8 +73,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == 85){
-            if(resultCode == Activity.RESULT_OK){
+        if (requestCode == 85) {
+            if (resultCode == Activity.RESULT_OK) {
 
                 String nombre = data.getStringExtra("nombre");
                 String apellido = data.getStringExtra("apellido");
@@ -64,6 +82,9 @@ public class MainActivity extends AppCompatActivity {
                 String img = data.getStringExtra("img");
                 personas.add(new Persona(nombre, apellido, dir, img));
 
+                if (personas != null && !personas.isEmpty()) {
+                    addPersona(personas.get(personas.size() - 1));
+                }
 
                 miAdapter.notifyDataSetChanged();
             }
@@ -92,11 +113,11 @@ public class MainActivity extends AppCompatActivity {
             Persona datos = getItem(position);
 
 
-            if(convertView == null){
+            if (convertView == null) {
                 Log.d("Lista De Ejemplo", "(" + position + ") Estoy creando un nuevo objeto");
                 LayoutInflater li = getLayoutInflater();
                 convertView = li.inflate(R.layout.row_persona, parent, false);
-            }else{
+            } else {
                 Log.d("Lista De Ejemplo", "(" + position + ") Estoy reciclando un objeto");
             }
 
@@ -119,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
     private void setPic(Persona persona, ImageView mImageView) {
         // Get the dimensions of the View
         int targetW = mImageView.getMeasuredWidth();
-        ;
+
         int targetH = mImageView.getMeasuredHeight();
 
         // Get the dimensions of the bitmap
@@ -140,6 +161,48 @@ public class MainActivity extends AppCompatActivity {
         Bitmap bitmap = BitmapFactory.decodeFile(persona.getImagen(), bmOptions);
         mImageView.setBackground(null);
         mImageView.setImageBitmap(bitmap);
+    }
+
+    private void loadDb() {
+
+
+        Cursor cursor = dbWrite.rawQuery("SELECT nombre, apellido, direccion, imagen FROM " + DbHelper.TABLE_PERSONAS, null);
+
+        cursor.moveToFirst();
+        //if (cursor != null && cursor.getCount() > 0) {
+
+
+        while (!cursor.isAfterLast()) {
+            String nombre = cursor.getString(cursor.getColumnIndex("nombre"));
+            String apellido = cursor.getString(cursor.getColumnIndex("apellido"));
+            String direccion = cursor.getString(cursor.getColumnIndex("direccion"));
+            String imagen = cursor.getString(cursor.getColumnIndex("imagen"));
+
+            personas.add(new Persona(nombre, apellido, direccion, imagen));
+
+            cursor.moveToNext();
+        }
+        //}
+
+
+        cursor.close();
+    }
+
+    public void addPersona(Persona persona) {//(String nombre,String apellido,String direccion,String imagen){
+
+        try {
+            //Cursor cursor = dbWrite.rawQuery("INSERT INTO " + dbHelper.TABLE_PERSONAS +
+            //                " ([nombre], [apellido], [imagen], [direccion]) VALUES (?, ?, ?, ?)",
+            //       new String[]{persona.getNombre(), persona.getApellido(), persona.getImagen(), persona.getDireccion()});
+
+            Cursor cursor = dbWrite.rawQuery("INSERT INTO " + dbHelper.TABLE_PERSONAS + " VALUES ('" + "', '" + persona.getNombre() + "', '" + persona.getApellido() + "', '" + persona.getImagen() + "', '" + persona.getDireccion() + "')", null);
+            cursor.close();
+        } catch (Exception e) {
+            Log.e("app Lista SQL", "error en clase add persona (" + persona.getNombre() + " " + persona.getApellido() + ")");
+            e.printStackTrace();
+        }
+
+
     }
 
 }
