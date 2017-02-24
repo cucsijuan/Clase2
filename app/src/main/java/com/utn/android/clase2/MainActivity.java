@@ -2,6 +2,11 @@ package com.utn.android.clase2;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.icu.text.SimpleDateFormat;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.ListViewCompat;
@@ -10,17 +15,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
 
-    List<String> nombres = new  ArrayList<String>();
-    List<String> direcciones = new  ArrayList<String>();
+    List<Persona> personas = new ArrayList<>();
 
     private ListView lista;
 
@@ -28,8 +36,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        nombres.add("Juan Couso");
-        direcciones.add("Lezica 1234");
+        personas.add(new Persona("Juan Manuel", "Couso", "lezica 1234", null));
 
         lista = (ListView)findViewById(R.id.lista);
         lista.setAdapter( miAdapter);
@@ -50,12 +57,13 @@ public class MainActivity extends AppCompatActivity {
 
         if(requestCode == 85){
             if(resultCode == Activity.RESULT_OK){
+
                 String nombre = data.getStringExtra("nombre");
                 String apellido = data.getStringExtra("apellido");
                 String dir = data.getStringExtra("dir");
+                String img = data.getStringExtra("img");
+                personas.add(new Persona(nombre, apellido, dir, img));
 
-                nombres.add(nombre + " " + apellido);
-                direcciones.add(dir);
 
                 miAdapter.notifyDataSetChanged();
             }
@@ -65,12 +73,12 @@ public class MainActivity extends AppCompatActivity {
     private BaseAdapter miAdapter = new BaseAdapter() {
         @Override
         public int getCount() {
-            return nombres.size();
+            return personas.size();
         }
 
         @Override
-        public String getItem(int position) {
-            return nombres.get(position);
+        public Persona getItem(int position) {
+            return personas.get(position);
         }
 
         @Override
@@ -81,8 +89,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
 
-            String nombre = getItem(position);
-            String direccion = direcciones.get(position);
+            Persona datos = getItem(position);
+
 
             if(convertView == null){
                 Log.d("Lista De Ejemplo", "(" + position + ") Estoy creando un nuevo objeto");
@@ -94,11 +102,44 @@ public class MainActivity extends AppCompatActivity {
 
             TextView nombreView = (TextView) convertView.findViewById(R.id.nombre_de_persona);
             TextView dirView = (TextView) convertView.findViewById(R.id.direccion_de_persona);
-            nombreView.setText(nombre);
-            dirView.setText(direccion);
+            ImageView avatar = (ImageView) convertView.findViewById(R.id.smallAvatar);
+            nombreView.setText(datos.getNombre() + ", " + datos.getApellido());
+            dirView.setText(datos.getDireccion());
+            if (datos.getImagen() != null) {
+                setPic(datos, avatar);
+            } else {
+                avatar.setBackground(getDrawable(R.mipmap.ic_launcher));
+                avatar.setImageBitmap(null);
+            }
 
             return convertView;
         }
     };
+
+    private void setPic(Persona persona, ImageView mImageView) {
+        // Get the dimensions of the View
+        int targetW = mImageView.getMeasuredWidth();
+        ;
+        int targetH = mImageView.getMeasuredHeight();
+
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(persona.getImagen(), bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW / targetW, photoH / targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+        Bitmap bitmap = BitmapFactory.decodeFile(persona.getImagen(), bmOptions);
+        mImageView.setBackground(null);
+        mImageView.setImageBitmap(bitmap);
+    }
 
 }

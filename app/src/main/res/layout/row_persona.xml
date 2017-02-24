@@ -6,6 +6,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/smallAvatar"
+            android:layout_width="65dp"
+            android:layout_height="match_parent"
+            android:background="@mipmap/ic_launcher"
+            android:layout_marginLeft="5dp" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -17,7 +24,7 @@
                 android:text="Hola que tal!"
                 android:paddingTop="10dp"
                 android:paddingBottom="5dp"
-                android:paddingLeft="50dp"
+                android:paddingLeft="30dp"
                 android:paddingRight="50dp"
                 android:textSize="24sp"
                 />
@@ -28,7 +35,7 @@
                 android:text="Calle Falsa 123"
 
                 android:paddingBottom="10dp"
-                android:paddingLeft="50dp"
+                android:paddingLeft="30dp"
                 android:paddingRight="50dp"
                 android:textSize="12sp"
                 />
